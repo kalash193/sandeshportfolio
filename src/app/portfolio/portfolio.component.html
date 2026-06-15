@@ -1,0 +1,422 @@
+<!-- LOADING SCREEN -->
+<div class="loading-screen" *ngIf="isLoading">
+  <div class="spinner-box">
+    <div class="configure-border-1">
+      <div class="configure-core"></div>
+    </div>
+    <div class="configure-border-2">
+      <div class="configure-core"></div>
+    </div>
+  </div>
+  <p class="loading-text">Loading Creative Space...</p>
+</div>
+
+<div *ngIf="!isLoading && data">
+  <!-- HEADER / NAVIGATION -->
+  <header class="header-nav glass-panel" [class.menu-open]="isMobileMenuOpen">
+    <div class="nav-container">
+      <div class="logo" (click)="scrollTo('home')">
+        <span class="logo-name">{{ data.hero.firstName }} {{ data.hero.lastName }}</span>
+        <span class="logo-title text-gradient">{{ data.hero.subtitle | uppercase }}</span>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <nav class="desktop-menu">
+        <a (click)="scrollTo('home')" [class.active]="activeSection === 'home'">Home</a>
+        <a (click)="scrollTo('about')" [class.active]="activeSection === 'about'">About</a>
+        <a (click)="scrollTo('services')" [class.active]="activeSection === 'services'">Services</a>
+        <a (click)="scrollTo('projects')" [class.active]="activeSection === 'projects'">Projects</a>
+        <a (click)="scrollTo('skills')" [class.active]="activeSection === 'skills'">Skills</a>
+        <a (click)="scrollTo('resume')" [class.active]="activeSection === 'resume'">Resume</a>
+        <a (click)="scrollTo('contact')" [class.active]="activeSection === 'contact'">Contact</a>
+      </nav>
+
+      <!-- Top Right Contact -->
+      <div class="header-contact" *ngIf="data.about.phone">
+        <a [href]="'tel:' + data.about.phone" class="tel-link">
+          <i class="fa-solid fa-phone text-gradient"></i>
+          <span>{{ data.about.phone }}</span>
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Toggle Navigation">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div class="mobile-dropdown" [class.open]="isMobileMenuOpen">
+      <a (click)="scrollTo('home')" [class.active]="activeSection === 'home'">Home</a>
+      <a (click)="scrollTo('about')" [class.active]="activeSection === 'about'">About</a>
+      <a (click)="scrollTo('services')" [class.active]="activeSection === 'services'">Services</a>
+      <a (click)="scrollTo('projects')" [class.active]="activeSection === 'projects'">Projects</a>
+      <a (click)="scrollTo('skills')" [class.active]="activeSection === 'skills'">Skills</a>
+      <a (click)="scrollTo('resume')" [class.active]="activeSection === 'resume'">Resume</a>
+      <a (click)="scrollTo('contact')" [class.active]="activeSection === 'contact'">Contact</a>
+      <a [href]="'tel:' + data.about.phone" class="mobile-tel" *ngIf="data.about.phone">
+        <i class="fa-solid fa-phone"></i> {{ data.about.phone }}
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- HERO SECTION -->
+    <section id="home" class="hero-section">
+      <div class="hero-overlay"></div>
+      <div class="hero-content fade-in">
+        <h1 class="hero-title">
+          <span class="hero-firstname">{{ data.hero.firstName }}</span>
+          <span class="hero-lastname">{{ data.hero.lastName }}</span>
+        </h1>
+        <p class="hero-subtitle-script">{{ data.hero.subtitle }}</p>
+        
+        <div class="hero-actions">
+          <button (click)="downloadCV()" class="btn-hero-outline btn-hero-accent">
+            Download CV
+          </button>
+          <button (click)="scrollTo('about')" class="btn-hero-outline">
+            View Portfolio
+          </button>
+        </div>
+
+        <!-- Social Icons -->
+        <div class="hero-socials">
+          <ng-container *ngFor="let link of data.socialLinks">
+            <a *ngIf="link.enabled && link.url" [href]="link.url" target="_blank" rel="noopener noreferrer" class="social-icon-btn" [title]="link.platform">
+              <i [class]="link.icon"></i>
+            </a>
+            <a *ngIf="link.enabled && !link.url" (click)="scrollTo('services')" class="social-icon-btn" [title]="link.platform + ' (On Hold)'">
+              <i [class]="link.icon"></i>
+            </a>
+          </ng-container>
+        </div>
+      </div>
+      
+      <div class="scroll-indicator" (click)="scrollTo('about')">
+        <span>Scroll Down</span>
+        <i class="fa-solid fa-chevron-down floating"></i>
+      </div>
+    </section>
+
+    <!-- ABOUT ME SECTION -->
+    <section id="about" class="section about-section">
+      <div class="container">
+        <div class="about-grid">
+          <!-- Text details on the left -->
+          <div class="about-info-col fade-in">
+            <h2 class="about-title-text">ABOUT ME</h2>
+            <a [href]="'mailto:' + data.about.email" class="about-email-link text-gradient">{{ data.about.email }}</a>
+            
+            <p class="about-bio">
+              {{ data.about.bio }}
+            </p>
+
+            <div class="about-metadata-list">
+              <div class="meta-item">
+                <span class="meta-label">Availability:</span>
+                <span class="meta-value status-pulse"><i class="fa-solid fa-circle text-gradient"></i> {{ data.about.availability }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Languages:</span>
+                <span class="meta-value">{{ data.about.languages }}</span>
+              </div>
+            </div>
+
+            <div class="about-signature-block">
+              <div class="signature-name-row">
+                <i class="fa-solid fa-signature text-gradient"></i>
+                <span class="signature-name">{{ data.hero.firstName | titlecase }} {{ data.hero.lastName | titlecase }}</span>
+              </div>
+              <a [href]="'tel:' + data.about.phone" class="signature-phone text-gradient">{{ data.about.phone }}</a>
+            </div>
+          </div>
+
+          <!-- Image on the right (seamless portrait) -->
+          <div class="about-img-col">
+            <div class="about-image-wrapper-seamless">
+              <img src="/images/about_profile.png" alt="Profile Portrait" class="profile-img-seamless">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT CAN I DO / SERVICES SECTION -->
+    <section id="services" class="section services-section">
+      <div class="container">
+        <h2 class="section-title">What I Can Do</h2>
+        
+        <div class="services-grid">
+          <div class="service-card glass-panel" *ngFor="let service of data.services">
+            <div class="service-icon-box">
+              <i [class]="service.icon"></i>
+            </div>
+            <h3 class="service-title">{{ service.title }}</h3>
+            <p class="service-desc">{{ service.desc }}</p>
+            <div class="service-card-glow"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS SECTION -->
+    <section id="projects" class="section projects-section" *ngIf="data.projects && data.projects.length > 0">
+      <div class="container">
+        <h2 class="section-title">Projects Showcase</h2>
+        
+        <div class="projects-grid">
+          <div class="project-card glass-panel animate-on-scroll" *ngFor="let project of data.projects" (click)="openLightbox(project)">
+            <div class="project-media-wrapper">
+              <img [src]="project.thumbnailUrl" [alt]="project.title" class="project-thumbnail" loading="lazy">
+              <div class="project-overlay">
+                <div class="play-btn-circle">
+                  <i class="fa-solid fa-play"></i>
+                </div>
+              </div>
+              <span class="project-badge">{{ project.category }}</span>
+              <span class="project-type-badge" *ngIf="project.isVertical">
+                <i class="fa-solid fa-mobile-screen-button"></i> Reel
+              </span>
+              <span class="project-type-badge" *ngIf="!project.isVertical">
+                <i class="fa-solid fa-display"></i> Landscape
+              </span>
+            </div>
+            <div class="project-info">
+              <h3 class="project-title">{{ project.title }}</h3>
+              <p class="project-desc">{{ project.desc | slice:0:110 }}{{ project.desc.length > 110 ? '...' : '' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS SECTION -->
+    <section id="skills" class="section skills-section">
+      <div class="container">
+        <h2 class="section-title">Software Skills</h2>
+        
+        <div class="skills-container glass-panel">
+          <div class="skills-grid">
+            <div class="skill-meter" *ngFor="let skill of data.softwareSkills">
+              <div class="skill-info">
+                <span class="skill-name">{{ skill.name }}</span>
+                <span class="skill-level">{{ skill.level }}%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" [style.width.%]="skill.level" [style.background]="skill.color" [style.box-shadow]="'0 0 10px ' + skill.color"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE & RESUME / HOBBIES SECTION -->
+    <section id="resume" class="section resume-section">
+      <div class="container">
+        <h2 class="section-title">Resume & Personal Details</h2>
+        
+        <!-- 3-Column layout: Education, Personal Skills, Hobbies -->
+        <div class="resume-grid">
+          <!-- Education Column -->
+          <div class="resume-col glass-panel">
+            <div class="col-header">
+              <i class="fa-solid fa-graduation-cap text-gradient"></i>
+              <h3>Education</h3>
+            </div>
+            <div class="col-content">
+              <div class="education-item" *ngFor="let edu of data.education">
+                <span class="education-date">{{ edu.dateRange }}</span>
+                <h4 class="education-degree">{{ edu.degree }}</h4>
+                <p class="education-institute">{{ edu.institute }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Personal & Game Art Skills Column -->
+          <div class="resume-col glass-panel">
+            <div class="col-header">
+              <i class="fa-solid fa-lightbulb text-gradient"></i>
+              <h3>Personal & Technical Skills</h3>
+            </div>
+            <div class="col-content">
+              <div class="skill-lists-wrapper">
+                <div class="skill-sub-list">
+                  <h4>Professional Skills</h4>
+                  <ul>
+                    <li *ngFor="let item of data.personalSkills">
+                      <i class="fa-solid fa-check text-gradient"></i> {{ item }}
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="skill-sub-list border-top-divider" *ngIf="data.gameArtSkills && data.gameArtSkills.length > 0">
+                  <h4>Game Art Specializations</h4>
+                  <ul>
+                    <li *ngFor="let item of data.gameArtSkills">
+                      <i class="fa-solid fa-gamepad text-gradient"></i> {{ item }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hobbies & Interests Column -->
+          <div class="resume-col glass-panel">
+            <div class="col-header">
+              <i class="fa-solid fa-gamepad text-gradient"></i>
+              <h3>Hobbies & Interests</h3>
+            </div>
+            <div class="col-content">
+              <ul class="hobbies-list">
+                <li *ngFor="let hobby of data.hobbies">
+                  <div class="hobby-icon">
+                    <i [class]="hobby.icon"></i>
+                  </div>
+                  <span class="hobby-name">{{ hobby.name }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="section contact-section">
+      <div class="container">
+        <h2 class="section-title">Get In Touch</h2>
+        
+        <div class="contact-grid">
+          <!-- Contact details left -->
+          <div class="contact-info-panel glass-panel">
+            <h3>Let's Collaborate</h3>
+            <p class="contact-desc">
+              {{ data.contact.collaborationText }}
+            </p>
+
+            <div class="contact-details-list">
+              <div class="contact-info-item">
+                <i class="fa-solid fa-envelope text-gradient"></i>
+                <div>
+                  <span>Email</span>
+                  <a [href]="'mailto:' + data.contact.email">{{ data.contact.email }}</a>
+                </div>
+              </div>
+
+              <div class="contact-info-item" *ngIf="data.contact.phone">
+                <i class="fa-solid fa-phone text-gradient"></i>
+                <div>
+                  <span>Phone</span>
+                  <a [href]="'tel:' + data.contact.phone">{{ data.contact.phone }}</a>
+                </div>
+              </div>
+
+              <div class="contact-info-item">
+                <i class="fa-solid fa-location-dot text-gradient"></i>
+                <div>
+                  <span>Location</span>
+                  <p>{{ data.contact.location }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Form right -->
+          <div class="contact-form-panel glass-panel">
+            <form #f="ngForm" (ngSubmit)="submitContactForm()" class="contact-form">
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="name">Your Name</label>
+                  <input type="text" id="name" name="name" [(ngModel)]="contactForm.name" required placeholder="John Doe">
+                </div>
+                
+                <div class="form-group">
+                  <label for="email">Your Email</label>
+                  <input type="email" id="email" name="email" [(ngModel)]="contactForm.email" required placeholder="john@example.com">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" [(ngModel)]="contactForm.subject" placeholder="Project Inquiry">
+              </div>
+
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" [(ngModel)]="contactForm.message" required rows="5" placeholder="Tell me about your project..."></textarea>
+              </div>
+
+              <button type="submit" [disabled]="!f.valid" class="btn-primary submit-btn">
+                Send Message <i class="fa-solid fa-paper-plane"></i>
+              </button>
+
+              <!-- Success message -->
+              <div class="success-alert glass-panel fade-in" *ngIf="formSubmitted">
+                <i class="fa-solid fa-circle-check text-gradient"></i>
+                <div>
+                  <h4>Message Sent Successfully!</h4>
+                  <p>Thank you, {{ contactForm.name }}. I will get back to you shortly.</p>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2026 {{ data.hero.firstName | titlecase }} {{ data.hero.lastName | titlecase }}. All Rights Reserved.</p>
+      <p class="footer-meta">
+        {{ data.hero.subtitle }} | Built with Angular & Vanilla CSS |
+        <a routerLink="/admin" class="admin-login-link"><i class="fa-solid fa-key"></i> Admin Login</a>
+      </p>
+    </div>
+  </footer>
+  <!-- LIGHTBOX / VIDEO MODAL -->
+  <div class="lightbox-modal" *ngIf="showLightbox && activeProject" (click)="closeLightbox()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()" [class.vertical-reel-container]="activeProject.isVertical">
+      <!-- Close Button -->
+      <button class="close-lightbox" (click)="closeLightbox()" aria-label="Close Lightbox">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      
+      <!-- Video Element -->
+      <div class="lightbox-media-box">
+        <!-- If it's a YouTube/Vimeo embed -->
+        <iframe *ngIf="isEmbedUrl(activeProject.videoUrl)" 
+                [src]="getSafeVideoUrl(activeProject.videoUrl)"
+                frameborder="0" 
+                allow="autoplay; encrypted-media; picture-in-picture" 
+                allowfullscreen 
+                class="lightbox-video">
+        </iframe>
+
+        <!-- If it's a direct MP4 link -->
+        <video *ngIf="!isEmbedUrl(activeProject.videoUrl)" 
+               [src]="activeProject.videoUrl"
+               controls 
+               autoplay 
+               playsinline
+               class="lightbox-video">
+        </video>
+      </div>
+
+      <!-- Details Panel -->
+      <div class="lightbox-details">
+        <span class="details-badge">{{ activeProject.category }}</span>
+        <h3 class="details-title">{{ activeProject.title }}</h3>
+        <p class="details-desc">{{ activeProject.desc }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+

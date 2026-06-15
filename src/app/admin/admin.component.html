@@ -1,0 +1,471 @@
+<!-- LOGIN SCREEN -->
+<div class="login-screen" *ngIf="!isLoggedIn">
+  <div class="login-card">
+    <div class="login-header">
+      <i class="fa-solid fa-shield-halved login-icon"></i>
+      <h1>Admin Panel</h1>
+      <p>Enter password to manage your portfolio</p>
+    </div>
+    <form (ngSubmit)="login()" class="login-form">
+      <div class="input-group">
+        <i class="fa-solid fa-lock"></i>
+        <input
+          type="password"
+          [(ngModel)]="passwordInput"
+          name="password"
+          placeholder="Enter admin password"
+          [class.error]="loginError"
+          autocomplete="off"
+        />
+      </div>
+      <p class="error-text" *ngIf="loginError">
+        <i class="fa-solid fa-circle-exclamation"></i> Incorrect password
+      </p>
+      <button type="submit" class="btn-login">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+      </button>
+    </form>
+    <a routerLink="/" class="back-link">
+      <i class="fa-solid fa-arrow-left"></i> Back to Portfolio
+    </a>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div class="admin-dashboard" *ngIf="isLoggedIn">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Admin Panel</h2>
+      <span class="sidebar-badge">Portfolio Manager</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        *ngFor="let tab of tabs"
+        (click)="setTab(tab.id)"
+        [class.active]="activeTab === tab.id"
+        class="nav-item"
+      >
+        <i [class]="tab.icon"></i>
+        <span>{{ tab.label }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a routerLink="/" class="nav-item preview-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Portfolio</span>
+      </a>
+      <button (click)="logout()" class="nav-item logout-btn">
+        <i class="fa-solid fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="admin-main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <h1 class="page-title">
+        <i [class]="activeTabIcon"></i>
+        {{ activeTabLabel }}
+      </h1>
+      <div class="topbar-actions">
+        <button (click)="resetAll()" class="btn-reset" [disabled]="saving">
+          <i class="fa-solid fa-rotate-left"></i> Reset All
+        </button>
+        <button (click)="save()" class="btn-save" [disabled]="saving">
+          <i class="fa-solid fa-floppy-disk"></i>
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT PANELS -->
+    <div class="content-area">
+
+      <!-- HERO TAB -->
+      <section class="panel" *ngIf="activeTab === 'hero'">
+        <div class="panel-header">
+          <h2>Hero Section</h2>
+          <p>The first thing visitors see on your portfolio.</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>First Name</label>
+            <input type="text" [(ngModel)]="data.hero.firstName" placeholder="SANDESH" />
+          </div>
+          <div class="field">
+            <label>Last Name</label>
+            <input type="text" [(ngModel)]="data.hero.lastName" placeholder="BHADANGE" />
+          </div>
+          <div class="field full-width">
+            <label>Subtitle (Script Text)</label>
+            <input type="text" [(ngModel)]="data.hero.subtitle" placeholder="3D Artist & Animator" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT TAB -->
+      <section class="panel" *ngIf="activeTab === 'about'">
+        <div class="panel-header">
+          <h2>About Me</h2>
+          <p>Your personal bio and details.</p>
+        </div>
+        <div class="form-grid">
+          <div class="field full-width">
+            <label>Bio</label>
+            <textarea [(ngModel)]="data.about.bio" rows="6" placeholder="Write about yourself..."></textarea>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="data.about.email" placeholder="your@email.com" />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" [(ngModel)]="data.about.phone" placeholder="+91 9420964210" />
+          </div>
+          <div class="field">
+            <label>Availability Status</label>
+            <input type="text" [(ngModel)]="data.about.availability" placeholder="Open to projects" />
+          </div>
+          <div class="field">
+            <label>Languages</label>
+            <input type="text" [(ngModel)]="data.about.languages" placeholder="Hindi, English" />
+          </div>
+        </div>
+      </section>
+
+      <!-- PROJECTS TAB -->
+      <section class="panel" *ngIf="activeTab === 'projects'">
+        <div class="panel-header-row">
+          <div class="panel-header">
+            <h2>Projects Video/Reel Showcase</h2>
+            <p>Manage the videos and reels displayed in your portfolio gallery.</p>
+          </div>
+          <button (click)="addProject()" class="btn-add-item">
+            <i class="fa-solid fa-plus"></i> Add New Project
+          </button>
+        </div>
+
+        <div class="list-items" *ngIf="data.projects && data.projects.length > 0">
+          <div class="list-card" *ngFor="let proj of data.projects; let i = index; trackBy: trackByIndex">
+            <div class="list-card-header">
+              <span class="item-number">#{{ i + 1 }}</span>
+              <h4>{{ proj.title || 'New Project' }}</h4>
+              <button (click)="removeProject(i)" class="btn-delete-card" title="Delete Project">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+            
+            <div class="form-grid">
+              <div class="field">
+                <label>Project Title</label>
+                <input type="text" [(ngModel)]="proj.title" placeholder="Lost Temple Ruins" />
+              </div>
+              <div class="field">
+                <label>Category / Specialization</label>
+                <input type="text" [(ngModel)]="proj.category" placeholder="Environment Design" />
+              </div>
+              <div class="field">
+                <label>Video URL (Direct MP4, YouTube, or Vimeo)</label>
+                <input type="text" [(ngModel)]="proj.videoUrl" placeholder="https://commondatastorage.googleapis.com/...mp4" />
+              </div>
+              <div class="field">
+                <label>Thumbnail / Cover Image URL</label>
+                <input type="text" [(ngModel)]="proj.thumbnailUrl" placeholder="https://images.unsplash.com/..." />
+              </div>
+              <div class="field full-width checkbox-field">
+                <span class="field-label">Is Vertical Reel? (Check this if it is a phone-formatted 9:16 vertical reel)</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="proj.isVertical" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="field full-width">
+                <label>Project Description</label>
+                <textarea [(ngModel)]="proj.desc" rows="3" placeholder="Describe your 3D workflow, tools used, and composition details..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!data.projects || data.projects.length === 0">
+          <i class="fa-solid fa-film"></i>
+          <p>No projects added yet. Click "Add New Project" to start showcasing your work!</p>
+        </div>
+      </section>
+
+      <!-- SOCIAL LINKS TAB -->
+      <section class="panel" *ngIf="activeTab === 'social'">
+        <div class="panel-header">
+          <h2>Social Links</h2>
+          <p>Your social media profile URLs.</p>
+        </div>
+        <div class="list-items">
+          <div class="list-card" *ngFor="let link of data.socialLinks; let i = index; trackBy: trackByIndex">
+            <div class="list-card-header">
+              <i [class]="link.icon" class="card-icon"></i>
+              <span class="card-title">{{ link.platform }}</span>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="link.enabled" [name]="'social-toggle-' + i" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="form-grid">
+              <div class="field full-width">
+                <label>URL</label>
+                <input type="url" [(ngModel)]="link.url" [name]="'social-url-' + i" placeholder="https://..." />
+              </div>
+              <div class="field">
+                <label>Icon Class</label>
+                <input type="text" [(ngModel)]="link.icon" [name]="'social-icon-' + i" placeholder="fa-brands fa-instagram" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICES TAB -->
+      <section class="panel" *ngIf="activeTab === 'services'">
+        <div class="panel-header">
+          <h2>Services</h2>
+          <p>What you can do — your service cards.</p>
+          <button (click)="addService()" class="btn-add">
+            <i class="fa-solid fa-plus"></i> Add Service
+          </button>
+        </div>
+        <div class="list-items">
+          <div class="list-card" *ngFor="let service of data.services; let i = index; trackBy: trackByServiceId">
+            <div class="list-card-header">
+              <i [class]="service.icon" class="card-icon"></i>
+              <span class="card-title">{{ service.title }}</span>
+              <button (click)="removeService(i)" class="btn-remove" title="Remove">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Title</label>
+                <input type="text" [(ngModel)]="service.title" [name]="'svc-title-' + i" />
+              </div>
+              <div class="field">
+                <label>Icon Class</label>
+                <input type="text" [(ngModel)]="service.icon" [name]="'svc-icon-' + i" placeholder="fa-solid fa-cube" />
+              </div>
+              <div class="field full-width">
+                <label>Description</label>
+                <textarea [(ngModel)]="service.desc" [name]="'svc-desc-' + i" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOFTWARE SKILLS TAB -->
+      <section class="panel" *ngIf="activeTab === 'skills'">
+        <div class="panel-header">
+          <h2>Software Skills</h2>
+          <p>Your tools and proficiency levels.</p>
+          <button (click)="addSoftwareSkill()" class="btn-add">
+            <i class="fa-solid fa-plus"></i> Add Skill
+          </button>
+        </div>
+        <div class="list-items">
+          <div class="list-card" *ngFor="let skill of data.softwareSkills; let i = index; trackBy: trackByIndex">
+            <div class="list-card-header">
+              <span class="color-dot" [style.background]="skill.color"></span>
+              <span class="card-title">{{ skill.name }}</span>
+              <span class="badge">{{ skill.level }}%</span>
+              <button (click)="removeSoftwareSkill(i)" class="btn-remove" title="Remove">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <div class="form-grid three-col">
+              <div class="field">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="skill.name" [name]="'skill-name-' + i" />
+              </div>
+              <div class="field">
+                <label>Level (0–100)</label>
+                <input type="number" [(ngModel)]="skill.level" [name]="'skill-level-' + i" min="0" max="100" />
+              </div>
+              <div class="field">
+                <label>Bar Color</label>
+                <div class="color-input-wrapper">
+                  <input type="color" [(ngModel)]="skill.color" [name]="'skill-color-' + i" class="color-picker" />
+                  <input type="text" [(ngModel)]="skill.color" [name]="'skill-color-text-' + i" class="color-text" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERSONAL SKILLS TAB -->
+      <section class="panel" *ngIf="activeTab === 'personal'">
+        <div class="panel-header">
+          <h2>Personal / Professional Skills</h2>
+          <p>Soft skills and professional strengths.</p>
+        </div>
+        <div class="chip-editor">
+          <div class="add-row">
+            <input
+              type="text"
+              [(ngModel)]="newPersonalSkill"
+              placeholder="Type a skill and press Add..."
+              (keyup.enter)="addPersonalSkill()"
+            />
+            <button (click)="addPersonalSkill()" class="btn-add-sm">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+          <div class="chip-list">
+            <div class="chip" *ngFor="let skill of data.personalSkills; let i = index">
+              <span>{{ skill }}</span>
+              <button (click)="removePersonalSkill(i)" class="chip-remove">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p class="empty-msg" *ngIf="data.personalSkills.length === 0">No skills added yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- GAME ART SKILLS TAB -->
+      <section class="panel" *ngIf="activeTab === 'gameart'">
+        <div class="panel-header">
+          <h2>Game Art Specializations</h2>
+          <p>Your game art specific skills.</p>
+        </div>
+        <div class="chip-editor">
+          <div class="add-row">
+            <input
+              type="text"
+              [(ngModel)]="newGameArtSkill"
+              placeholder="Type a skill and press Add..."
+              (keyup.enter)="addGameArtSkill()"
+            />
+            <button (click)="addGameArtSkill()" class="btn-add-sm">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+          <div class="chip-list">
+            <div class="chip" *ngFor="let skill of data.gameArtSkills; let i = index">
+              <span>{{ skill }}</span>
+              <button (click)="removeGameArtSkill(i)" class="chip-remove">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p class="empty-msg" *ngIf="data.gameArtSkills.length === 0">No skills added yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOBBIES TAB -->
+      <section class="panel" *ngIf="activeTab === 'hobbies'">
+        <div class="panel-header">
+          <h2>Hobbies & Interests</h2>
+          <p>Things you enjoy outside of work.</p>
+          <button (click)="addHobby()" class="btn-add">
+            <i class="fa-solid fa-plus"></i> Add Hobby
+          </button>
+        </div>
+        <div class="list-items">
+          <div class="list-card" *ngFor="let hobby of data.hobbies; let i = index; trackBy: trackByIndex">
+            <div class="list-card-header">
+              <i [class]="hobby.icon" class="card-icon"></i>
+              <span class="card-title">{{ hobby.name }}</span>
+              <button (click)="removeHobby(i)" class="btn-remove" title="Remove">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="hobby.name" [name]="'hobby-name-' + i" />
+              </div>
+              <div class="field">
+                <label>Icon Class</label>
+                <input type="text" [(ngModel)]="hobby.icon" [name]="'hobby-icon-' + i" placeholder="fa-solid fa-star" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EDUCATION TAB -->
+      <section class="panel" *ngIf="activeTab === 'education'">
+        <div class="panel-header">
+          <h2>Education</h2>
+          <p>Your academic background.</p>
+          <button (click)="addEducation()" class="btn-add">
+            <i class="fa-solid fa-plus"></i> Add Education
+          </button>
+        </div>
+        <div class="list-items">
+          <div class="list-card" *ngFor="let edu of data.education; let i = index; trackBy: trackByIndex">
+            <div class="list-card-header">
+              <i class="fa-solid fa-graduation-cap card-icon"></i>
+              <span class="card-title">{{ edu.degree }}</span>
+              <button (click)="removeEducation(i)" class="btn-remove" title="Remove">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <div class="form-grid three-col">
+              <div class="field">
+                <label>Date Range</label>
+                <input type="text" [(ngModel)]="edu.dateRange" [name]="'edu-date-' + i" placeholder="2023 – 2026" />
+              </div>
+              <div class="field">
+                <label>Degree / Course</label>
+                <input type="text" [(ngModel)]="edu.degree" [name]="'edu-degree-' + i" />
+              </div>
+              <div class="field">
+                <label>Institute</label>
+                <input type="text" [(ngModel)]="edu.institute" [name]="'edu-inst-' + i" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT TAB -->
+      <section class="panel" *ngIf="activeTab === 'contact'">
+        <div class="panel-header">
+          <h2>Contact Information</h2>
+          <p>How people can reach you.</p>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="data.contact.email" placeholder="your@email.com" />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" [(ngModel)]="data.contact.phone" placeholder="+91 9420964210" />
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" [(ngModel)]="data.contact.location" placeholder="Maharashtra, India" />
+          </div>
+          <div class="field full-width">
+            <label>Collaboration Description</label>
+            <textarea [(ngModel)]="data.contact.collaborationText" rows="4" placeholder="Describe how visitors can collaborate with you..."></textarea>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" [class.show]="showToast" [class.toast-success]="toastType === 'success'" [class.toast-error]="toastType === 'error'">
+    <i [class]="toastType === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'"></i>
+    <span>{{ toastMessage }}</span>
+  </div>
+</div>
