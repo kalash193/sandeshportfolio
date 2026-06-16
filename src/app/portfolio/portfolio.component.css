@@ -275,19 +275,20 @@
 }
 
 .hero-firstname {
+  font-size: 5.5rem;
+  font-weight: 900;
+  letter-spacing:-2px;
+  color: var(--text-primary);
+  line-height: 1.05
+}
+
+.hero-lastname {
   font-size: 2rem;
   font-weight: 400;
   letter-spacing: 8px;
   color: var(--text-primary);
-  opacity: 0.85;
-}
-
-.hero-lastname {
-  font-size: 5.5rem;
-  font-weight: 900;
-  letter-spacing: -2px;
-  color: var(--text-primary);
   line-height: 1.05;
+  opacity: 0.85;
 }
 
 .hero-subtitle-script {
