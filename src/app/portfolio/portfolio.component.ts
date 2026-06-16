@@ -5,6 +5,7 @@ import { PortfolioDataService } from '../services/portfolio-data.service';
 import { PortfolioData, ProjectItem } from '../services/portfolio-data.model';
 import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { CONTACT_CONFIG } from '../emailjs.config';
 
 @Component({
   selector: 'app-portfolio',
@@ -24,7 +25,7 @@ export class PortfolioComponent implements OnInit {
   activeProject: ProjectItem | null = null;
   showLightbox = false;
 
-  // Contact Form Data
+  // Contact Form
   contactForm = {
     name: '',
     email: '',
@@ -32,6 +33,9 @@ export class PortfolioComponent implements OnInit {
     message: ''
   };
   formSubmitted = false;
+  formSending  = false;
+  formError    = false;
+  formErrorMessage = '';
 
   constructor(
     private dataService: PortfolioDataService,
@@ -43,101 +47,125 @@ export class PortfolioComponent implements OnInit {
     this.isLoading = false;
   }
 
-  toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
-  }
-
-  closeMobileMenu() {
-    this.isMobileMenuOpen = false;
-  }
+  toggleMobileMenu() { this.isMobileMenuOpen = !this.isMobileMenuOpen; }
+  closeMobileMenu()  { this.isMobileMenuOpen = false; }
 
   scrollTo(sectionId: string) {
     this.closeMobileMenu();
     this.activeSection = sectionId;
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // Monitor scrolling to highlight active nav link
   @HostListener('window:scroll', [])
   onWindowScroll() {
     const sections = ['home', 'about', 'services', 'projects', 'skills', 'resume', 'contact'];
-    const scrollPosition = window.pageYOffset + 200; // Offset for header height
-
-    for (const section of sections) {
-      const element = document.getElementById(section);
-      if (element) {
-        const top = element.offsetTop;
-        const height = element.offsetHeight;
-        if (scrollPosition >= top && scrollPosition < top + height) {
-          this.activeSection = section;
-          break;
-        }
+    const pos = window.pageYOffset + 200;
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && pos >= el.offsetTop && pos < el.offsetTop + el.offsetHeight) {
+        this.activeSection = id;
+        break;
       }
     }
   }
 
-  submitContactForm() {
-    if (this.contactForm.name && this.contactForm.email && this.contactForm.message) {
-      console.log('Contact form submitted:', this.contactForm);
-      this.formSubmitted = true;
-      
-      // Reset form after a delay
-      setTimeout(() => {
-        this.contactForm = { name: '', email: '', subject: '', message: '' };
-        this.formSubmitted = false;
-      }, 5000);
+  // ── Contact Form ──────────────────────────────────────────────────────────
+  async submitContactForm() {
+    if (!this.contactForm.name || !this.contactForm.email || !this.contactForm.message) return;
+
+    this.formSending      = true;
+    this.formError        = false;
+    this.formErrorMessage = '';
+
+    // Check if key has been configured yet
+    if (CONTACT_CONFIG.accessKey === 'YOUR_WEB3FORMS_ACCESS_KEY') {
+      this.formSending      = false;
+      this.formError        = true;
+      this.formErrorMessage = 'Email not configured yet. Visit web3forms.com, enter adsanmediasandesh@gmail.com and paste the key in emailjs.config.ts.';
+      setTimeout(() => { this.formError = false; }, 10000);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key:    CONTACT_CONFIG.accessKey,
+          name:          this.contactForm.name,
+          email:         this.contactForm.email,
+          subject:       this.contactForm.subject || 'New portfolio message from ' + this.contactForm.name,
+          message:       this.contactForm.message,
+          // tells web3forms where to deliver the email
+          to:            CONTACT_CONFIG.toEmail,
+          // reply-to so you can reply directly to the sender
+          replyto:       this.contactForm.email,
+          // bot check
+          botcheck:      '',
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        this.formSending   = false;
+        this.formSubmitted = true;
+        // Reset after 6 s
+        setTimeout(() => {
+          this.contactForm   = { name: '', email: '', subject: '', message: '' };
+          this.formSubmitted = false;
+        }, 6000);
+      } else {
+        throw new Error(result.message || 'Unknown error');
+      }
+
+    } catch (err: any) {
+      this.formSending      = false;
+      this.formError        = true;
+      this.formErrorMessage = 'Could not send message. Please email directly at ' + CONTACT_CONFIG.toEmail;
+      setTimeout(() => { this.formError = false; }, 8000);
+      console.error('Web3Forms error:', err);
     }
   }
 
   downloadCV() {
-    alert('Thank you for your interest! Sandesh Bhadange\'s CV download is starting... (Placeholder: In a live environment, this will trigger the download of CV pdf file.)');
+    alert("Thank you for your interest! Sandesh Bhadange's CV download is starting... (Placeholder: In a live environment, this will trigger the download of CV pdf file.)");
   }
 
-  // --- Lightbox Methods ---
+  // --- Lightbox ---
   openLightbox(project: ProjectItem) {
     this.activeProject = project;
-    this.showLightbox = true;
-    document.body.style.overflow = 'hidden'; // Lock background scroll
+    this.showLightbox  = true;
+    document.body.style.overflow = 'hidden';
   }
 
   closeLightbox() {
     this.activeProject = null;
-    this.showLightbox = false;
-    document.body.style.overflow = 'auto'; // Unlock background scroll
+    this.showLightbox  = false;
+    document.body.style.overflow = 'auto';
   }
 
   getSafeVideoUrl(url: string): SafeResourceUrl | string {
     if (!url) return '';
-    
-    // YouTube Embed
+
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      let videoId = '';
-      if (url.includes('youtu.be/')) {
-        videoId = url.split('youtu.be/')[1].split(/[?#]/)[0];
-      } else if (url.includes('v=')) {
-        videoId = url.split('v=')[1].split('&')[0].split(/[?#]/)[0];
-      } else if (url.includes('embed/')) {
-        videoId = url.split('embed/')[1].split(/[?#]/)[0];
-      }
-      if (videoId) {
-        return this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`);
-      }
+      let id = '';
+      if (url.includes('youtu.be/'))  id = url.split('youtu.be/')[1].split(/[?#]/)[0];
+      else if (url.includes('v='))    id = url.split('v=')[1].split('&')[0].split(/[?#]/)[0];
+      else if (url.includes('embed/')) id = url.split('embed/')[1].split(/[?#]/)[0];
+      if (id) return this.sanitizer.bypassSecurityTrustResourceUrl(
+        `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`
+      );
     }
-    
-    // Vimeo Embed
+
     if (url.includes('vimeo.com')) {
-      let videoId = '';
-      const match = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/posts\/|album\/(?:\d+)\/video\/|video\/|)(\d+)/);
-      if (match) {
-        videoId = match[1];
-        return this.sanitizer.bypassSecurityTrustResourceUrl(`https://player.vimeo.com/video/${videoId}?autoplay=1`);
-      }
+      const m = url.match(/vimeo\.com\/(?:.*\/)?(\d+)/);
+      if (m) return this.sanitizer.bypassSecurityTrustResourceUrl(
+        `https://player.vimeo.com/video/${m[1]}?autoplay=1`
+      );
     }
-    
-    // Direct link to video files (MP4, etc.)
+
     return url;
   }
 
@@ -146,4 +174,3 @@ export class PortfolioComponent implements OnInit {
     return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
   }
 }
-

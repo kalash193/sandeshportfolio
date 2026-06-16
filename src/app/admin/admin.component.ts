@@ -26,6 +26,7 @@ export class AdminComponent implements OnInit {
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
   showToast = false;
+  sidebarOpen = false;
 
   get activeTabLabel(): string {
     const tab = this.tabs.find(t => t.id === this.activeTab);
@@ -84,6 +85,15 @@ export class AdminComponent implements OnInit {
 
   setTab(tabId: string) {
     this.activeTab = tabId;
+    this.sidebarOpen = false; // Close sidebar on mobile after selecting a tab
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   // Save all data

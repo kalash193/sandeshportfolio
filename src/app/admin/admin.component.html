@@ -34,8 +34,11 @@
 <!-- ADMIN DASHBOARD -->
 <div class="admin-dashboard" *ngIf="isLoggedIn">
 
+  <!-- SIDEBAR OVERLAY (mobile backdrop) -->
+  <div class="sidebar-overlay" [class.active]="sidebarOpen" (click)="closeSidebar()"></div>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-header">
       <h2>Admin Panel</h2>
       <span class="sidebar-badge">Portfolio Manager</span>
@@ -70,17 +73,29 @@
 
     <!-- TOP BAR -->
     <div class="topbar">
-      <h1 class="page-title">
-        <i [class]="activeTabIcon"></i>
-        {{ activeTabLabel }}
-      </h1>
+      <!-- Mobile Left: Hamburger + Back to Portfolio -->
+      <div class="topbar-left">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+          <span class="hbar" [class.open]="sidebarOpen"></span>
+          <span class="hbar" [class.open]="sidebarOpen"></span>
+          <span class="hbar" [class.open]="sidebarOpen"></span>
+        </button>
+        <h1 class="page-title">
+          <i [class]="activeTabIcon"></i>
+          <span class="page-title-text">{{ activeTabLabel }}</span>
+        </h1>
+      </div>
       <div class="topbar-actions">
+        <a routerLink="/" class="btn-back-portfolio">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Portfolio</span>
+        </a>
         <button (click)="resetAll()" class="btn-reset" [disabled]="saving">
-          <i class="fa-solid fa-rotate-left"></i> Reset All
+          <i class="fa-solid fa-rotate-left"></i> <span class="btn-label">Reset All</span>
         </button>
         <button (click)="save()" class="btn-save" [disabled]="saving">
           <i class="fa-solid fa-floppy-disk"></i>
-          {{ saving ? 'Saving...' : 'Save Changes' }}
+          <span class="btn-label">{{ saving ? 'Saving...' : 'Save Changes' }}</span>
         </button>
       </div>
     </div>

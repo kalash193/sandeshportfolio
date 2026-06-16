@@ -136,18 +136,37 @@
   color: #00f2fe;
 }
 
-/* ADMIN DASHBOARD LAYOUT */
+/* ===========================
+   ADMIN DASHBOARD LAYOUT
+   =========================== */
 .admin-dashboard {
   display: flex;
   min-height: 100vh;
   background: #070709;
+  position: relative;
+}
+
+/* SIDEBAR OVERLAY (mobile backdrop) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
 }
 
 /* SIDEBAR */
 .sidebar {
   width: 260px;
   min-height: 100vh;
-  background: rgba(13, 14, 18, 0.9);
+  background: rgba(13, 14, 18, 0.97);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
@@ -156,6 +175,7 @@
   left: 0;
   z-index: 100;
   overflow-y: auto;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-header {
@@ -167,7 +187,7 @@
   font-size: 1.3rem;
   font-weight: 800;
   color: #f8fafc;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .sidebar-badge {
@@ -212,6 +232,7 @@
   width: 20px;
   text-align: center;
   font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .nav-item:hover {
@@ -247,6 +268,7 @@
   margin-left: 260px;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 /* TOP BAR */
@@ -254,40 +276,125 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 36px;
+  padding: 16px 32px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(13, 14, 18, 0.6);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 50;
+  gap: 12px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* HAMBURGER BUTTON — hidden on desktop */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.hbar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #94a3b8;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+/* Animate to X when open */
+.hamburger-btn .hbar:nth-child(1).open {
+  transform: translateY(9px) rotate(45deg);
+  background: #00f2fe;
+}
+.hamburger-btn .hbar:nth-child(2).open {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger-btn .hbar:nth-child(3).open {
+  transform: translateY(-9px) rotate(-45deg);
+  background: #00f2fe;
 }
 
 .page-title {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #f8fafc;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .page-title i {
   color: #00f2fe;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.page-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* BACK TO PORTFOLIO button in topbar */
+.btn-back-portfolio {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: rgba(79, 172, 254, 0.08);
+  color: #4facfe;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid rgba(79, 172, 254, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Outfit', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-back-portfolio:hover {
+  background: rgba(79, 172, 254, 0.18);
+  border-color: rgba(79, 172, 254, 0.5);
+  transform: translateY(-1px);
+  color: #fff;
 }
 
 .btn-save {
-  padding: 10px 24px;
+  padding: 9px 20px;
   background: linear-gradient(135deg, #00f2fe, #4facfe);
   color: #030712;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -295,7 +402,8 @@
   font-family: 'Outfit', sans-serif;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  white-space: nowrap;
 }
 
 .btn-save:hover:not(:disabled) {
@@ -309,11 +417,11 @@
 }
 
 .btn-reset {
-  padding: 10px 20px;
+  padding: 9px 16px;
   background: transparent;
   color: #94a3b8;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   cursor: pointer;
@@ -321,7 +429,8 @@
   font-family: 'Outfit', sans-serif;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  white-space: nowrap;
 }
 
 .btn-reset:hover:not(:disabled) {
@@ -365,6 +474,15 @@
   color: #64748b;
   font-size: 0.9rem;
   margin-bottom: 4px;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 /* FORM GRID */
@@ -419,7 +537,7 @@
   color: #475569;
 }
 
-/* LIST ITEMS (Services, Skills, Hobbies, Education) */
+/* LIST ITEMS */
 .list-items {
   display: flex;
   flex-direction: column;
@@ -445,6 +563,7 @@
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-wrap: wrap;
 }
 
 .card-icon {
@@ -452,6 +571,7 @@
   color: #00f2fe;
   width: 24px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .card-title {
@@ -459,6 +579,17 @@
   font-weight: 600;
   color: #f8fafc;
   flex: 1;
+  min-width: 0;
+}
+
+.item-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 3px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
 }
 
 .badge {
@@ -468,6 +599,7 @@
   background: rgba(0, 242, 254, 0.08);
   padding: 4px 12px;
   border-radius: 20px;
+  flex-shrink: 0;
 }
 
 .color-dot {
@@ -492,9 +624,33 @@
   align-items: center;
   gap: 6px;
   margin-left: auto;
+  white-space: nowrap;
 }
 
 .btn-add:hover {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
+.btn-add-item {
+  padding: 9px 20px;
+  background: rgba(0, 242, 254, 0.08);
+  color: #00f2fe;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Outfit', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-add-item:hover {
   background: rgba(0, 242, 254, 0.15);
   border-color: rgba(0, 242, 254, 0.4);
 }
@@ -508,9 +664,28 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.8rem;
+  flex-shrink: 0;
 }
 
 .btn-remove:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete-card {
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.06);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.btn-delete-card:hover {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.3);
 }
@@ -535,7 +710,7 @@
   flex: 1;
 }
 
-/* CHIP EDITOR (Personal Skills, Game Art Skills) */
+/* CHIP EDITOR */
 .chip-editor {
   display: flex;
   flex-direction: column;
@@ -639,6 +814,22 @@
   font-style: italic;
 }
 
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #475569;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-state p {
+  font-size: 1rem;
+}
+
 /* TOGGLE SWITCH */
 .toggle-switch {
   position: relative;
@@ -687,6 +878,20 @@
   background: #00f2fe;
 }
 
+/* CHECKBOX FIELD */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.checkbox-field .field-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
 /* TOAST */
 .toast {
   position: fixed;
@@ -727,98 +932,165 @@
   font-size: 1.2rem;
 }
 
-/* RESPONSIVE */
-@media (max-width: 992px) {
+/* ===========================
+   RESPONSIVE BREAKPOINTS
+   =========================== */
+
+/* --- 1100px: slight sidebar shrink --- */
+@media (max-width: 1100px) {
   .sidebar {
-    width: 220px;
+    width: 230px;
   }
-
   .admin-main {
-    margin-left: 220px;
+    margin-left: 230px;
   }
-
   .form-grid.three-col {
     grid-template-columns: repeat(2, 1fr);
   }
+  .content-area {
+    padding: 28px;
+  }
 }
 
+/* --- 768px: mobile sidebar becomes overlay drawer --- */
 @media (max-width: 768px) {
-  .admin-dashboard {
-    flex-direction: column;
+  /* Show sidebar overlay backdrop */
+  .sidebar-overlay {
+    display: block;
   }
 
+  /* Sidebar slides in from left */
   .sidebar {
-    width: 100%;
-    min-height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    width: 280px;
+    transform: translateX(-100%);
+    box-shadow: none;
   }
 
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 12px;
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.5);
   }
 
-  .nav-item {
-    padding: 8px 12px;
-    font-size: 0.82rem;
-  }
-
-  .nav-item span {
-    display: none;
-  }
-
-  .nav-item i {
-    font-size: 1.1rem;
-  }
-
-  .sidebar-footer {
-    flex-direction: row;
-  }
-
-  .sidebar-footer .nav-item span {
-    display: none;
-  }
-
+  /* Main content takes full width */
   .admin-main {
     margin-left: 0;
+    width: 100%;
   }
 
+  /* Show hamburger button */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Topbar responsive */
   .topbar {
-    padding: 16px 20px;
-    flex-direction: column;
-    gap: 12px;
+    padding: 14px 18px;
+    gap: 10px;
   }
 
+  .page-title {
+    font-size: 1.05rem;
+  }
+
+  /* Back to Portfolio button label stays visible on mobile */
+  .btn-back-portfolio {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    gap: 5px;
+  }
+
+  /* Reset and Save — icon only on small topbar */
+  .btn-reset .btn-label,
+  .btn-save .btn-label {
+    display: none;
+  }
+
+  .btn-reset,
+  .btn-save {
+    padding: 9px 12px;
+  }
+
+  /* Content area */
   .content-area {
-    padding: 20px;
+    padding: 20px 16px;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
+  /* Form grids collapse */
+  .form-grid,
   .form-grid.three-col {
     grid-template-columns: 1fr;
   }
 
+  /* Login card */
   .login-card {
-    padding: 40px 25px;
+    padding: 40px 24px;
+  }
+
+  /* Panel header row wraps nicely */
+  .panel-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn-add-item {
+    justify-content: center;
+  }
+
+  /* Toast to bottom center on mobile */
+  .toast {
+    bottom: 20px;
+    right: 16px;
+    left: 16px;
+    font-size: 0.9rem;
   }
 }
 
-.checkbox-field {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 8px;
-}
+/* --- 480px: tiny phones --- */
+@media (max-width: 480px) {
+  .topbar {
+    padding: 12px 14px;
+  }
 
-.checkbox-field .field-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  .page-title-text {
+    display: none; /* Only show icon on very small screens */
+  }
+
+  .page-title {
+    gap: 0;
+  }
+
+  .btn-back-portfolio span {
+    display: none; /* icon only on tiny screens */
+  }
+
+  .btn-back-portfolio {
+    padding: 9px 10px;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .content-area {
+    padding: 16px 12px;
+  }
+
+  .list-card {
+    padding: 18px 14px;
+  }
+
+  .login-card {
+    padding: 32px 18px;
+  }
+
+  .login-card h1 {
+    font-size: 1.5rem;
+  }
+
+  .add-row {
+    flex-direction: column;
+  }
+
+  .btn-add-sm {
+    justify-content: center;
+  }
 }
