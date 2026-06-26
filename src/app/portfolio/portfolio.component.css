@@ -602,7 +602,7 @@
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
   gap: 30px;
 }
 
@@ -1281,7 +1281,7 @@
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
   gap: 30px;
   margin-top: 40px;
 }
@@ -1556,9 +1556,10 @@
 @media (max-width: 992px) {
   .lightbox-content {
     flex-direction: column;
-    max-height: 90vh;
+    max-height: 92vh;
     width: 100%;
     max-width: 600px;
+    overflow-y: auto;
   }
   
   .lightbox-media-box {
