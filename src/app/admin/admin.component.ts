@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PortfolioDataService } from '../services/portfolio-data.service';
-import { PortfolioData, ServiceItem, SoftwareSkill, HobbyItem, EducationItem, SocialLink } from '../services/portfolio-data.model';
+import { PortfolioData, ServiceItem, SoftwareSkill, HobbyItem, EducationItem, SocialLink, ProjectItem } from '../services/portfolio-data.model';
 
 @Component({
   selector: 'app-admin',
@@ -59,6 +59,21 @@ export class AdminComponent implements OnInit {
   // New item temp fields
   newPersonalSkill = '';
   newGameArtSkill = '';
+
+  // Upload state per project index
+  uploadState: { [key: number]: {
+    videoUploading: boolean;
+    videoProgress: number;
+    thumbUploading: boolean;
+    thumbProgress: number;
+  }} = {};
+
+  getUploadState(i: number) {
+    if (!this.uploadState[i]) {
+      this.uploadState[i] = { videoUploading: false, videoProgress: 0, thumbUploading: false, thumbProgress: 0 };
+    }
+    return this.uploadState[i];
+  }
 
   constructor(private dataService: PortfolioDataService) {}
 
@@ -215,6 +230,58 @@ export class AdminComponent implements OnInit {
 
   removeEducation(index: number) {
     this.data.education.splice(index, 1);
+  }
+
+  // --- File Uploads ---
+  async uploadVideo(event: Event, proj: ProjectItem, i: number) {
+    const input = event.target as HTMLInputElement;
+    const file = input?.files?.[0];
+    if (!file) return;
+
+    const state = this.getUploadState(i);
+    state.videoUploading = true;
+    state.videoProgress = 0;
+
+    try {
+      // Store video in IndexedDB (browser local storage – no size limits)
+      const blobUrl = await this.dataService.storeVideoLocally(
+        file,
+        (pct) => { state.videoProgress = pct; }
+      );
+      proj.videoUrl = blobUrl;
+      this.showNotification('Video stored locally on this device!', 'success');
+    } catch (err) {
+      this.showNotification('Video storage failed. Try a different file.', 'error');
+    } finally {
+      state.videoUploading = false;
+      input.value = '';
+    }
+  }
+
+  async uploadThumbnail(event: Event, proj: ProjectItem, i: number) {
+    const input = event.target as HTMLInputElement;
+    const file = input?.files?.[0];
+    if (!file) return;
+
+    const state = this.getUploadState(i);
+    state.thumbUploading = true;
+    state.thumbProgress = 0;
+
+    try {
+      // Compress image and store as base64 directly in Firestore
+      const base64 = await this.dataService.compressImage(
+        file,
+        1280, 960, 0.82,
+        (pct) => { state.thumbProgress = pct; }
+      );
+      proj.thumbnailUrl = base64;
+      this.showNotification('Photo compressed & saved to Firestore!', 'success');
+    } catch (err) {
+      this.showNotification('Photo processing failed. Try a smaller image.', 'error');
+    } finally {
+      state.thumbUploading = false;
+      input.value = '';
+    }
   }
 
   // Toast notification

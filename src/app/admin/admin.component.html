@@ -186,14 +186,84 @@
                 <label>Category / Specialization</label>
                 <input type="text" [(ngModel)]="proj.category" placeholder="Environment Design" />
               </div>
-              <div class="field">
-                <label>Video URL (Direct MP4, YouTube, or Vimeo)</label>
-                <input type="text" [(ngModel)]="proj.videoUrl" placeholder="https://commondatastorage.googleapis.com/...mp4" />
+
+              <!-- ── VIDEO UPLOAD ── -->
+              <div class="field full-width upload-field">
+                <label>
+                  <i class="fa-solid fa-film"></i> Video File
+                  <span class="upload-hint">Stored locally on this device (IndexedDB) — or paste a URL below</span>
+                </label>
+
+                <div class="upload-zone" [class.uploading]="getUploadState(i).videoUploading">
+                  <!-- Preview -->
+                  <video *ngIf="proj.videoUrl && !getUploadState(i).videoUploading"
+                         [src]="proj.videoUrl" class="media-preview" controls preload="metadata">
+                  </video>
+                  <!-- Upload button -->
+                  <label class="upload-btn" [class.disabled]="getUploadState(i).videoUploading">
+                    <input type="file" accept="video/*"
+                           (change)="uploadVideo($event, proj, i)"
+                           [disabled]="getUploadState(i).videoUploading"
+                           style="display:none" />
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    {{ getUploadState(i).videoUploading ? 'Uploading...' : (proj.videoUrl ? 'Replace Video' : 'Upload Video') }}
+                  </label>
+                  <!-- Progress bar -->
+                  <div class="progress-wrap" *ngIf="getUploadState(i).videoUploading">
+                    <div class="progress-bar">
+                      <div class="progress-fill" [style.width.%]="getUploadState(i).videoProgress"></div>
+                    </div>
+                    <span class="progress-pct">{{ getUploadState(i).videoProgress }}%</span>
+                  </div>
+                </div>
+
+                <!-- URL fallback -->
+                <div class="url-fallback">
+                  <i class="fa-solid fa-link url-icon"></i>
+                  <input type="text" [(ngModel)]="proj.videoUrl"
+                         placeholder="Or paste URL: https://...mp4 / YouTube / Vimeo"
+                         [name]="'proj-video-url-' + i" />
+                </div>
               </div>
-              <div class="field">
-                <label>Thumbnail / Cover Image URL</label>
-                <input type="text" [(ngModel)]="proj.thumbnailUrl" placeholder="https://images.unsplash.com/..." />
+
+              <!-- ── THUMBNAIL / PHOTO UPLOAD ── -->
+              <div class="field full-width upload-field">
+                <label>
+                  <i class="fa-solid fa-image"></i> Thumbnail / Cover Photo
+                  <span class="upload-hint">Upload JPG/PNG/WebP from your device, or paste a URL below</span>
+                </label>
+
+                <div class="upload-zone thumb-zone" [class.uploading]="getUploadState(i).thumbUploading">
+                  <!-- Preview -->
+                  <img *ngIf="proj.thumbnailUrl && !getUploadState(i).thumbUploading"
+                       [src]="proj.thumbnailUrl" class="thumb-preview" alt="Thumbnail preview" />
+                  <!-- Upload button -->
+                  <label class="upload-btn" [class.disabled]="getUploadState(i).thumbUploading">
+                    <input type="file" accept="image/*"
+                           (change)="uploadThumbnail($event, proj, i)"
+                           [disabled]="getUploadState(i).thumbUploading"
+                           style="display:none" />
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    {{ getUploadState(i).thumbUploading ? 'Uploading...' : (proj.thumbnailUrl ? 'Replace Photo' : 'Upload Photo') }}
+                  </label>
+                  <!-- Progress bar -->
+                  <div class="progress-wrap" *ngIf="getUploadState(i).thumbUploading">
+                    <div class="progress-bar">
+                      <div class="progress-fill thumb-fill" [style.width.%]="getUploadState(i).thumbProgress"></div>
+                    </div>
+                    <span class="progress-pct">{{ getUploadState(i).thumbProgress }}%</span>
+                  </div>
+                </div>
+
+                <!-- URL fallback -->
+                <div class="url-fallback">
+                  <i class="fa-solid fa-link url-icon"></i>
+                  <input type="text" [(ngModel)]="proj.thumbnailUrl"
+                         placeholder="Or paste URL: https://images.unsplash.com/..."
+                         [name]="'proj-thumb-url-' + i" />
+                </div>
               </div>
+
               <div class="field full-width checkbox-field">
                 <span class="field-label">Is Vertical Reel? (Check this if it is a phone-formatted 9:16 vertical reel)</span>
                 <label class="toggle-switch">
