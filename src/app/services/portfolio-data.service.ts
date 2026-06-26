@@ -206,129 +206,59 @@ export class PortfolioDataService {
   }
 
   // ─────────────────────────────────────────────────────
-  // IMAGE: Compress & encode to Base64 (stored in Firestore)
+  // CLOUDINARY UPLOAD — images & videos
+  // Files stored on Cloudinary CDN, URL saved in Firestore
+  // Free tier: 25 GB storage, 25 GB bandwidth/month
   // ─────────────────────────────────────────────────────
+  private readonly CL_CLOUD_NAME = 'dyobtwmqx';
+  private readonly CL_UPLOAD_PRESET = 'sandesh';
+
   /**
-   * Reads an image File, resizes it to maxWidth/maxHeight using Canvas,
-   * and returns a base64 data-URL (JPEG, quality 0.82).
-   * This is small enough to store directly in a Firestore field.
+   * Uploads any file (image or video) to Cloudinary via unsigned upload.
+   * Reports real-time progress via onProgress (0–100).
+   * Returns the permanent Cloudinary CDN URL (secure_url).
    */
-  compressImage(
+  uploadToCloudinary(
     file: File,
-    maxWidth = 1280,
-    maxHeight = 960,
-    quality = 0.82,
     onProgress?: (pct: number) => void
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      if (onProgress) onProgress(10);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (onProgress) onProgress(40);
-        const img = new Image();
-        img.onload = () => {
-          if (onProgress) onProgress(60);
-          let w = img.width;
-          let h = img.height;
-          if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
-          if (h > maxHeight) { w = Math.round(w * maxHeight / h); h = maxHeight; }
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d')!;
-          ctx.drawImage(img, 0, 0, w, h);
-          if (onProgress) onProgress(85);
-          const dataUrl = canvas.toDataURL('image/jpeg', quality);
-          if (onProgress) onProgress(100);
-          resolve(dataUrl);
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
+      // Detect resource type from MIME
+      const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+      const endpoint = `https://api.cloudinary.com/v1_1/${this.CL_CLOUD_NAME}/${resourceType}/upload`;
 
-  // ─────────────────────────────────────────────────────
-  // VIDEO: Store in browser IndexedDB (device-local)
-  // Returns a blob:// URL usable in <video> tags
-  // ─────────────────────────────────────────────────────
-  private readonly IDB_NAME = 'portfolio_videos';
-  private readonly IDB_STORE = 'videos';
-  private readonly IDB_VERSION = 1;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', this.CL_UPLOAD_PRESET);
 
-  private openIDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(this.IDB_NAME, this.IDB_VERSION);
-      req.onupgradeneeded = (e) => {
-        const db = (e.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains(this.IDB_STORE)) {
-          db.createObjectStore(this.IDB_STORE);
+      const xhr = new XMLHttpRequest();
+
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const pct = Math.round((event.loaded / event.total) * 100);
+          onProgress(pct);
         }
       };
-      req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);
-      req.onerror = (e) => reject((e.target as IDBOpenDBRequest).error);
-    });
-  }
 
-  /**
-   * Stores a video File in IndexedDB under a unique key.
-   * Returns a blob:// URL that can be used in <video src>.
-   * NOTE: This URL is valid only for the current browser session
-   * on this device. The stored blob persists in IndexedDB across sessions.
-   */
-  async storeVideoLocally(
-    file: File,
-    onProgress?: (pct: number) => void
-  ): Promise<string> {
-    if (onProgress) onProgress(10);
-    const db = await this.openIDB();
-    if (onProgress) onProgress(30);
-    const key = `video_${Date.now()}_${file.name}`;
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.IDB_STORE, 'readwrite');
-      const store = tx.objectStore(this.IDB_STORE);
-      const req = store.put(file, key);
-      req.onsuccess = () => {
-        if (onProgress) onProgress(90);
-        const blobUrl = URL.createObjectURL(file);
-        // Also persist the key so we can reload the blob URL on next session
-        try {
-          const keys: string[] = JSON.parse(localStorage.getItem('portfolio_video_keys') || '[]');
-          keys.push(key);
-          localStorage.setItem('portfolio_video_keys', JSON.stringify(keys));
-        } catch {}
-        if (onProgress) onProgress(100);
-        resolve(blobUrl);
-      };
-      req.onerror = (e) => reject((e.target as IDBRequest).error);
-    });
-  }
-
-  /**
-   * Loads a video blob from IndexedDB by its key and returns a fresh blob URL.
-   * Call this on app startup to restore video previews.
-   */
-  async loadVideoFromIDB(key: string): Promise<string | null> {
-    try {
-      const db = await this.openIDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction(this.IDB_STORE, 'readonly');
-        const store = tx.objectStore(this.IDB_STORE);
-        const req = store.get(key);
-        req.onsuccess = (e) => {
-          const blob = (e.target as IDBRequest).result;
-          if (blob) {
-            resolve(URL.createObjectURL(blob));
-          } else {
-            resolve(null);
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const res = JSON.parse(xhr.responseText);
+          resolve(res.secure_url);
+        } else {
+          try {
+            const err = JSON.parse(xhr.responseText);
+            reject(new Error(err?.error?.message || 'Upload failed'));
+          } catch {
+            reject(new Error(`Upload failed: ${xhr.status}`));
           }
-        };
-        req.onerror = () => resolve(null);
-      });
-    } catch {
-      return null;
-    }
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.open('POST', endpoint);
+      xhr.send(formData);
+    });
   }
 }
+

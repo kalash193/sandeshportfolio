@@ -243,15 +243,15 @@ export class AdminComponent implements OnInit {
     state.videoProgress = 0;
 
     try {
-      // Store video in IndexedDB (browser local storage – no size limits)
-      const blobUrl = await this.dataService.storeVideoLocally(
+      // Upload to Cloudinary → get permanent CDN URL → save in Firestore
+      const url = await this.dataService.uploadToCloudinary(
         file,
         (pct) => { state.videoProgress = pct; }
       );
-      proj.videoUrl = blobUrl;
-      this.showNotification('Video stored locally on this device!', 'success');
-    } catch (err) {
-      this.showNotification('Video storage failed. Try a different file.', 'error');
+      proj.videoUrl = url;
+      this.showNotification('Video uploaded to Cloudinary!', 'success');
+    } catch (err: any) {
+      this.showNotification('Video upload failed: ' + (err?.message || 'Try again.'), 'error');
     } finally {
       state.videoUploading = false;
       input.value = '';
@@ -268,16 +268,15 @@ export class AdminComponent implements OnInit {
     state.thumbProgress = 0;
 
     try {
-      // Compress image and store as base64 directly in Firestore
-      const base64 = await this.dataService.compressImage(
+      // Upload to Cloudinary → get permanent CDN URL → save in Firestore
+      const url = await this.dataService.uploadToCloudinary(
         file,
-        1280, 960, 0.82,
         (pct) => { state.thumbProgress = pct; }
       );
-      proj.thumbnailUrl = base64;
-      this.showNotification('Photo compressed & saved to Firestore!', 'success');
-    } catch (err) {
-      this.showNotification('Photo processing failed. Try a smaller image.', 'error');
+      proj.thumbnailUrl = url;
+      this.showNotification('Photo uploaded to Cloudinary!', 'success');
+    } catch (err: any) {
+      this.showNotification('Photo upload failed: ' + (err?.message || 'Try again.'), 'error');
     } finally {
       state.thumbUploading = false;
       input.value = '';
