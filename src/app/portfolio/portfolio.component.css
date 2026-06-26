@@ -1466,7 +1466,8 @@
   justify-content: center;
 }
 
-.lightbox-video {
+.lightbox-video,
+.lightbox-image {
   width: 100%;
   height: 100%;
   border: none;

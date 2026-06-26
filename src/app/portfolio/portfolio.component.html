@@ -174,7 +174,7 @@
               <img [src]="project.thumbnailUrl" [alt]="project.title" class="project-thumbnail" loading="lazy">
               <div class="project-overlay">
                 <div class="play-btn-circle">
-                  <i class="fa-solid fa-play"></i>
+                  <i [class]="project.videoUrl ? 'fa-solid fa-play' : 'fa-solid fa-magnifying-glass-plus'"></i>
                 </div>
               </div>
               <span class="project-badge">{{ project.category }}</span>
@@ -409,25 +409,34 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
       
-      <!-- Video Element -->
+      <!-- Video or Image Element -->
       <div class="lightbox-media-box">
-        <!-- If it's a YouTube/Vimeo embed -->
-        <iframe *ngIf="isEmbedUrl(activeProject.videoUrl)" 
-                [src]="getSafeVideoUrl(activeProject.videoUrl)"
-                frameborder="0" 
-                allow="autoplay; encrypted-media; picture-in-picture" 
-                allowfullscreen 
-                class="lightbox-video">
-        </iframe>
+        <!-- If it's a video project -->
+        <ng-container *ngIf="activeProject.videoUrl">
+          <!-- If it's a YouTube/Vimeo embed -->
+          <iframe *ngIf="isEmbedUrl(activeProject.videoUrl)" 
+                  [src]="getSafeVideoUrl(activeProject.videoUrl)"
+                  frameborder="0" 
+                  allow="autoplay; encrypted-media; picture-in-picture" 
+                  allowfullscreen 
+                  class="lightbox-video">
+          </iframe>
 
-        <!-- If it's a direct MP4 link -->
-        <video *ngIf="!isEmbedUrl(activeProject.videoUrl)" 
-               [src]="activeProject.videoUrl"
-               controls 
-               autoplay 
-               playsinline
-               class="lightbox-video">
-        </video>
+          <!-- If it's a direct MP4 link -->
+          <video *ngIf="!isEmbedUrl(activeProject.videoUrl)" 
+                 [src]="activeProject.videoUrl"
+                 controls 
+                 autoplay 
+                 playsinline
+                 class="lightbox-video">
+          </video>
+        </ng-container>
+
+        <!-- If it's an image-only project -->
+        <img *ngIf="!activeProject.videoUrl" 
+             [src]="activeProject.thumbnailUrl" 
+             class="lightbox-image" 
+             [alt]="activeProject.title" />
       </div>
 
       <!-- Details Panel -->

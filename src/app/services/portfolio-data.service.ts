@@ -223,9 +223,8 @@ export class PortfolioDataService {
     onProgress?: (pct: number) => void
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      // Detect resource type from MIME
-      const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
-      const endpoint = `https://api.cloudinary.com/v1_1/${this.CL_CLOUD_NAME}/${resourceType}/upload`;
+      // Use 'auto' endpoint to let Cloudinary detect resource type dynamically
+      const endpoint = `https://api.cloudinary.com/v1_1/${this.CL_CLOUD_NAME}/auto/upload`;
 
       const formData = new FormData();
       formData.append('file', file);
@@ -255,7 +254,15 @@ export class PortfolioDataService {
         }
       };
 
-      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.onerror = () => {
+        reject(
+          new Error(
+            'Network fail (CORS block). Please check: ' +
+            '1. In Cloudinary Settings -> Upload, edit your upload preset "' + this.CL_UPLOAD_PRESET + '" and ensure "Resource type" is set to "Auto" (not "Image"). ' +
+            '2. The file is within Cloudinary size limits (100MB for free videos).'
+          )
+        );
+      };
       xhr.open('POST', endpoint);
       xhr.send(formData);
     });
